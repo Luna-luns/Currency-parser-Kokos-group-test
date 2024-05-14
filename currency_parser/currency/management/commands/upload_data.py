@@ -15,17 +15,16 @@ class Command(BaseCommand):
         json_data = response.json()
         currencies_dict = json_data['Valute']
 
-        rates = [
-            CurrencyExchangeRates(
-                currency=Currency.objects.get(
-                    Currency,
+        for key, value in currencies_dict.items():
+            if not Currency.objects.filter(char_code=value['CharCode']).exists():
+                Currency.objects.create(
                     char_code=value['CharCode'],
                     name=value['Name']
-                ),
-                date=date.today(),
-                value=value['Value']
-            )
-            for key, value in currencies_dict.items()
-        ]
+                )
 
-        CurrencyExchangeRates.objects.bulk_create(rates)
+            CurrencyExchangeRates.objects.create(
+                currency=Currency.objects.get(
+                    char_code=value['CharCode']),
+                date=date.today(),
+                value=float(value['Value'])
+            )
